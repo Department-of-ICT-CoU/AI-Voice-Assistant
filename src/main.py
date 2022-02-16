@@ -13,6 +13,8 @@ import ctypes
 import time
 import shutil
 import pyautogui
+import randfacts
+import requests
 from urllib.request import urlopen
 
 listener = sr.Recognizer()
@@ -25,6 +27,8 @@ def takeCommand():
         with sr.Microphone() as source:
             print('listening...')
             voice = listener.listen(source)
+            listener.energy_threshold=10000
+            listener.adjust_for_ambient_noise(source,1.2)
             command = listener.recognize_google(voice)
             command = command.lower()
 
@@ -74,6 +78,25 @@ def sendEmail(to, content):
     server.login('your email id', 'your email password')
     server.sendmail('your email id', to, content)
     server.close()
+
+def news():#read lateast news
+    api_news="https://newsapi.org/v2/top-headlines?country=us&apiKey=fde8f304fd744cde98cb8732a64eae99"
+    json_news = requests.get(api_news).json()
+
+    ar=[]
+    for i in range(2):
+        ar.append("number " + str(i+1) + json_news['articles'][i]['title'])
+
+    return ar
+
+def temp():#weather report
+    api_temp="https://api.openweathermap.org/data/2.5/weather?q=Dhaka&appid=23c15a824f722626ef4ec4c16186a4f4"
+    json_temp = requests.get(api_temp).json()
+
+    tempo= round(json_temp['main']['temp']-273,1)
+    desc=json_temp['weather'][0]['description']
+    s=str(tempo)+" degree celcius "+desc
+    return s
 
 
 if __name__ == '__main__':
@@ -196,15 +219,23 @@ if __name__ == '__main__':
             time.sleep(5)
             subprocess.call(["shutdown", "/l"])
             
-        elif 'screenshot' in query:
+        elif 'screenshot' in command:
             speak("And the file name would be...")
             name = takeCommand()
             pyautogui.screenshot(f"File_Location{name}.png")
             speak("The screenshot has been taken sir, check this out")
             os.startfile("File_Location")
+        
+        elif 'fat' in command:
+            x=randfacts.getFact()
+            speak('did you know ' + x)
+        
+        elif 'news' in command:
+            arr=news()
+            for i in range(len(arr)):
+                speak(arr[i])
+        
+        elif 'weather' in command:
+            w=temp()
+            speak("the current temperature is "+w)
              
-
- 
-
-
-
